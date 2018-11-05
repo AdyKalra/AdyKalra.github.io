@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+  path {
+    stroke: #fff;
+    fill-rule: evenodd;
+  }
+
+  text {
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+  }
+</style>
+
+<body>
+<script src="https://d3js.org/d3.v3.min.js"></script>
+
+
+<script>
+  var width = 1260,
+      height = 1250,
+      radius = Math.min(width, height-50) / 2;
+
+  var x = d3.scale.linear()
+      .range([0, 2 * Math.PI]);
+
+  var y = d3.scale.linear()
+      .range([0, radius]);
+
+  var color = d3.scale.category20c();
+
+  var svg = d3.select("body").append("svg")
+      .attr("width", width)
+      .attr("height", height)
+      .append("g")
+      .attr("transform", "translate(" + width / 2 + "," + (height / 2 + 10) + ")");
+
+  var partition = d3.layout.partition()
+      .value(function(d) {
+        return d.size;
+      });
+
+  var arc = d3.svg.arc()
+      .startAngle(function(d) {
+        return Math.max(0, Math.min(2 * Math.PI, x(d.x)));
+      })
+      .endAngle(function(d) {
+        return Math.max(0, Math.min(2 * Math.PI, x(d.x + d.dx)));
+      })
+      .innerRadius(function(d) {
+        return Math.max(0, y(d.y));
+      })
+      .outerRadius(function(d) {
+        return Math.max(0, y(d.y + d.dy));
+      });
+
+
+  var g = svg.selectAll("g")
+      .data(partition.nodes(getData()))
+      .enter().append("g");
+
+  var path = g.append("path")
+      .attr("d", arc)
+      .style("fill", function(d) {
+        return color((d.children ? d : d.parent).name);
+      })
+      .on("click", click);
+
+  var text = g.append("text")
+      .attr("transform", function(d) {
+        return "rotate(" + computeTextRotation(d) + ")";
+      })
+      .attr("x", function(d) {
+        return y(d.y);
+      })
+      .attr("dx", "6") // margin
+      .attr("dy", ".35em") // vertical-align
+      .text(function(d) {
+        return d.name;
+      });
+
+  function click(d) {
+    // fade out all text elements
+    text.transition().attr("opacity", 0);
+
+    path.transition()
+        .duration(750)
+        .attrTween("d", arcTween(d))
+        .each("end", function(e, i) {
+          // check if the animated element's data e lies within the visible angle span given in d
+          if (e.x >= d.x && e.x < (d.x + d.dx)) {
+            // get a selection of the associated text element
+            var arcText = d3.select(this.parentNode).select("text");
+            // fade in the text element and recalculate positions
+            arcText.transition().duration(750)
+                .attr("opacity", 1)
+                .attr("transform", function() {
+                  return "rotate(" + computeTextRotation(e) + ")"
+                })
+                .attr("x", function(d) {
+                  return y(d.y);
+                });
+          }
+        });
+  }
+
+  d3.select(self.frameElement).style("height", height + "px");
+
+  // Interpolate the scales!
+  function arcTween(d) {
+    var xd = d3.interpolate(x.domain(), [d.x, d.x + d.dx]),
+        yd = d3.interpolate(y.domain(), [d.y, 1]),
+        yr = d3.interpolate(y.range(), [d.y ? 20 : 0, radius]);
+    return function(d, i) {
+      return i ? function(t) {
+        return arc(d);
+      } : function(t) {
+        x.domain(xd(t));
+        y.domain(yd(t)).range(yr(t));
+        return arc(d);
+      };
+    };
+  }
+
+  function computeTextRotation(d) {
+    return (x(d.x + d.dx / 2) - Math.PI / 2) / Math.PI * 180;
+  }
+
+  function getData() {
+    return {
+      "name": "Melbourne Cup 2018",
+      "children": [{
+        "name": "Race 1 1000m",
+        "size": 1000,
+        "children": [{
+            "name": "1 Champagne Boom",
+            "size": 300,
+            "children": [{
+                "name": "1",
+                "size": 300
+              },]
+
+          },{
+            "name": "2 Magnicity",
+            "size": 300,
+            
+          }, {
+            "name": "3 Song Brocade",
+            "size": 300,
+			"children": [{
+                "name": "3",
+                "size": 100
+              },]
+            
+          }, {
+            "name": "4 Calmyourfarm",
+            "size": 300,
+            
+          }, {
+            "name": "5 Anikery",
+            "size": 300,
+            
+          }, {
+            "name": "6 Bella Rosa",
+            "size": 300,
+            
+          }, {
+            "name": "7 Dreamtime Lady",
+            "size": 300,
+            
+          }, {
+            "name": "8 First Dawn",
+            "size": 300,
+            
+          }, {
+            "name": "9 Lankan Star",
+            "size": 300,
+			"children": [{
+                "name": "5",
+                "size": 300,
+				"children": [{
+                "name": "expert tips",
+                "size": 300
+              },]
+              },]
+            
+          }, {
+            "name": "10 Leale",
+            "size": 300,
+            
+          },{
+            "name": "11 Sisstar",
+            "size": 300,
+			"children": [{
+                "name": "2",
+                "size": 200
+              },]
+            
+          }, {
+            "name": "12 Still Single",
+            "size": 100,
+			"children": [{
+                "name": "4",
+                "size": 300,
+				"children": [{
+                "name": "active tippers",
+                "size": 300
+              },]
+              },]
+            
+          }, ]
+      }, {
+        "name": "Race 10 1400m",
+        "size": 1400,
+        "children": [{
+            "name": "1 PEDRENA",
+            "size": 300,            
+
+          },{
+            "name": "2 ELLICAZOOM",
+            "size": 300,
+            
+          }, {
+            "name": "3 NOIRE",
+            "size": 300,
+            
+          }, {
+            "name": "4  PRINCESS POSH",
+            "size": 300,
+            
+          }, {
+            "name": "5 COOL PASSION",
+            "size": 300,
+			"children": [{
+                "name": "4",
+                "size": 300,
+				"children": [{
+                "name": "speed",
+                "size": 300
+              },]
+              },]
+            
+          }, {
+            "name": "6 SAVAPINSKI",
+            "size": 300,
+			"children": [{
+                "name": "2",
+                "size": 200,
+				
+              },]
+            
+          }, {
+            "name": "7 OUR CROWN MISTRESS",
+            "size": 300,
+			"children": [{
+                "name": "3",
+                "size": 100,
+				
+              },]
+            
+          }, {
+            "name": "8 SO FAR SOKOOL",
+            "size": 300,
+            
+          }, {
+            "name": "9 RESIN",
+            "size": 300,
+            
+          }, {
+            "name": "10 IN GOOD TIME",
+            "size": 300,
+			"children": [{
+                "name": "4",
+                "size": 300,
+				"children": [{
+                "name": "active tippers",
+                "size": 300
+              },]
+              },]
+            
+          },{
+            "name": "11 FUHRYK",
+            "size": 300,
+            
+          }, {
+            "name": "12 SAVATIANO",
+            "size": 300,
+			"children": [{
+                "name": "1",
+                "size": 300,
+				
+              },]
+            
+          },  {
+            "name": "13. EPIDEMIC",
+            "size": 300,
+            
+          }, {
+            "name": "15. ZUMBELINA",
+            "size": 300,
+            
+          }, {
+            "name": "16. SPLIT LIP",
+            "size": 300,
+            
+          }, {
+            "name": "17. SPANNER HEAD",
+            "size": 300,
+            
+          }, {
+            "name": "18. JESTER HALO",
+            "size": 300,
+            
+          },{
+            "name": "19. MINTHA",
+            "size": 300,
+            
+          }, {
+            "name": "20. WARRANTY",
+            "size": 300,
+            
+          }, ]
+      }, {
+        "name": "Race 9 1200m",
+        "size": 1200,
+        "children": [{
+            "name": "1 COMICAS",
+            "size": 300,
+            "children": [{
+                "name": "4",
+                "size": 300,
+				"children": [{
+                "name": "active tippers",
+                "size": 300
+              },]
+              },]
+
+          },{
+            "name": "2 FIRST AMONG EQUALS",
+            "size": 300,
+			"children": [{
+                "name": "4",
+                "size": 300,
+				"children": [{
+                "name": "speed",
+                "size": 300
+              },]
+              },]
+            
+          }, {
+            "name": "3 STELLAR COLLISION",
+            "size": 300,
+            
+          }, {
+            "name": "4 KEEN ARRAY",
+            "size": 300,
+            
+          }, {
+            "name": "5 BRAVE SONG",
+            "size": 300,
+			"children": [{
+                "name": "1",
+                "size": 300,
+				
+              },]
+            
+          }, {
+            "name": "6 TREKKING",
+            "size": 300,
+			"children": [{
+                "name": "2",
+                "size": 200,
+				
+              },]
+            
+          }, {
+            "name": "7 SNITZKRAFT",
+            "size": 300,
+            
+          }, {
+            "name": "8 DEMONSTRATE",
+            "size": 300,
+            
+          }, {
+            "name": "9 TVERSKY",
+            "size": 300,
+            
+          }, {
+            "name": "10 MAN OF HIS WORD",
+            "size": 300,
+            
+          },{
+            "name": "11 MOONLOVER",
+            "size": 300,
+            
+          }, {
+            "name": "12 TRIED AND TIRED",
+            "size": 300,
+            
+          }, {
+            "name": "13 AFTER ALL THAT",
+            "size": 300,
+            
+          }, ]
+      }, {
+        "name": "Race 8 1800m",
+        "size": 1800,
+        "children": [{
+            "name": "1 STAMPEDE",
+            "size": 300,            
+
+          },{
+            "name": "2 DUCA VALENTINOIS",
+            "size": 300,
+            
+          }, {
+            "name": "3 LIFE LESS ORDINARY",
+            "size": 300,
+			"children": [{
+                "name": "1",
+                "size": 300,
+				
+              },]
+            
+          }, {
+            "name": "4 SOVEREIGN NATION",
+            "size": 300,
+			"children": [{
+                "name": "4",
+                "size": 300,
+				"children": [{
+                "name": "active tippers",
+                "size": 300
+              },]
+              },]
+            
+          }, {
+            "name": "5 TRADESMAN",
+            "size": 300,
+            
+          }, {
+            "name": "6 TOM MELBOURNE",
+            "size": 300,
+			"children": [{
+                "name": "4",
+                "size": 300,
+				"children": [{
+                "name": "distance",
+                "size": 300
+              },]
+              },]
+            
+          }, {
+            "name": "7 KIWIA",
+            "size": 300,
+			"children": [{
+                "name": "2",
+                "size": 200,
+				
+              },]
+            
+          }, {
+            "name": "8 TESTASHADOW",
+            "size": 300,
+            
+          }, {
+            "name": "9 ZAHSPEED",
+            "size": 300,
+            
+          }, {
+            "name": "10 BLACK ON GOLD",
+            "size": 300,
+            
+          },{
+            "name": "11 MURAAQEB",
+            "size": 300,
+            
+          }, {
+            "name": "12 RADIPOLE",
+            "size": 300,
+            
+          }, {
+            "name": "13. KAONIC",
+            "size": 300,
+            
+          },{
+            "name": "14. TAKE IT INTERN",
+            "size": 300,
+			"children": [{
+                "name": "3",
+                "size": 100,
+				
+              },]
+            
+          }, {
+            "name": "16. MAHAMEDEIS",
+            "size": 300,
+            
+          }, ]
+      }, {
+        "name": "Race 7 3200m",
+        "size": 3200,
+        "children": [{
+            "name": "1 BEST SOLUTION",
+            "size": 300,
+            "children": [{
+                "name": "2",
+                "size": 200,
+              },]
+
+          },{
+            "name": "2 THE CLIFFSOFMOHER",
+            "size": 300,
+			"children": [{
+                "name": "5",
+                "size": 300,
+				"children": [{
+                "name": "active tippers",
+                "size": 300
+              },]
+              },]
+            
+          }, {
+            "name": "3 MAGIC CIRCLE",
+            "size": 300,
+            
+          }, {
+            "name": "4 CHESTNUT COAT",
+            "size": 300,
+            
+          }, {
+            "name": "5 MUNTAHAA",
+            "size": 300,
+            
+          }, {
+            "name": "6 SOUND CHECK",
+            "size": 300,
+            
+          }, {
+            "name": "7  WHO SHOT THEBARMAN",
+            "size": 300,
+            
+          }, {
+            "name": "8 ACE HIGH",
+            "size": 300,
+            
+          }, {
+            "name": "9 MARMELO",
+            "size": 300,
+			"children": [{
+                "name": "2",
+                "size": 200,				
+             
+              },]
+            
+          }, {
+            "name": "10 AVILIUS",
+            "size": 300,
+			"children": [{
+                "name": "4",
+                "size": 300,
+				"children": [{
+                "name": "distance",
+                "size": 300
+              },]
+              },]
+            
+          },{
+            "name": "11 YUCATAN",
+            "size": 300,
+			"children": [{
+                "name": "3",
+                "size": 100,
+				
+              },]
+            
+          }, {
+            "name": "12 AUVRAY",
+            "size": 300,
+            
+          }, {
+            "name": "13. FINCHE",
+            "size": 300,
+            
+          }, {
+            "name": "14. RED CARDINAL ",
+            "size": 300,
+            
+          }, {
+            "name": "15. VENGEUR MASQUE",
+            "size": 300,
+            
+          }, {
+            "name": "16. VENTURA STORM ",
+            "size": 300,
+            
+          }, {
+            "name": "17. A PRINCE OF ARRAN",
+            "size": 300,
+			"children": [{
+                "name": "1",
+                "size": 300,
+			
+              },]
+            
+          }, {
+            "name": "18. NAKEETA",
+            "size": 300,
+            
+          }, {
+            "name": "19. SIR CHARLES ROAD",
+            "size": 300,
+            
+          }, {
+            "name": "20. ZACADA",
+            "size": 300,
+            
+          }, {
+            "name": "21. RUNAWAY",
+            "size": 300,
+            
+          },{
+            "name": "22. YOUNGSTAR",
+            "size": 300,
+            
+          }, {
+            "name": "23. CROSS COUNTER",
+            "size": 300,
+            
+          }, {
+            "name": "24. ROSTROPOVICH",
+            "size": 300,
+            
+          }, ]
+      }, {
+        "name": "Race 6 1400m",
+        "size": 1400,
+        "children": [{
+            "name": "1 ENBIHAAR",
+            "size": 300,            
+
+          },{
+            "name": "2 KHULAASA",
+            "size": 300,
+			"children": [{
+                "name": "4",
+                "size": 300,
+				"children": [{
+                "name": "speed",
+                "size": 300
+              },]
+              },]
+            
+          }, {
+            "name": "3 ZIZZIS",
+            "size": 300,
+			"children": [{
+                "name": "4",
+                "size": 300,
+				"children": [{
+                "name": "active tippers",
+                "size": 300
+              },]
+              },]
+            
+          }, {
+            "name": "5 BEAUTY",
+            "size": 300,
+			"children": [{
+                "name": "3",
+                "size": 100,
+				
+              },]
+            
+          }, {
+            "name": "6 ARISTOCRATIC MISS",
+            "size": 300,
+            
+          }, {
+            "name": "8 TAHITIAN DANCER",
+            "size": 300,
+            
+          }, {
+            "name": "9 INTO THE ABYSS",
+            "size": 300,
+            
+          }, {
+            "name": "10 MADAM ROUGE",
+            "size": 300,
+            
+          },{
+            "name": "11 I'M SO SWEET",
+            "size": 300,
+            
+          }, {
+            "name": "12 MIRETTE",
+            "size": 300,
+			"children": [{
+                "name": "1",
+                "size": 300,
+				
+              },]
+            
+          }, {
+            "name": "13. POHUTUKAWA",
+            "size": 300,
+            
+          }, {
+            "name": "14. JEN RULES",
+            "size": 300,
+            
+          }, {
+            "name": "15. PERSUADER",
+            "size": 300,
+            
+          }, {
+            "name": "16. KINGS BROOK",
+            "size": 300,
+            
+          },{
+            "name": "17. NOTATION",
+            "size": 300,
+			"children": [{
+                "name": "2",
+                "size": 200,
+				
+              },]
+            
+          }, {
+            "name": "18. HONEYSUCKLE CHOICE",
+            "size": 300,
+            
+          }, ]
+      }, {
+        "name": "Race 5 1000m",
+        "size": 1000,
+        "children": [{
+            "name": "1 NOMOTHAJ",
+            "size": 300,
+            "children": [{
+                "name": "3",
+                "size": 100
+              },]
+
+          },{
+            "name": "2 HEAVEN'S DEAL",
+            "size": 300,
+			"children": [{
+                "name": "1",
+                "size": 300,
+				
+              },]
+            
+          }, {
+            "name": "3 LEGEND OF CONDOR",
+            "size": 300,
+			"children": [{
+                "name": "3",
+                "size": 300,
+				
+              },]
+            
+          }, {
+            "name": "4 CYCLONITE",
+            "size": 300,
+            
+          }, {
+            "name": "6. CHABREET",
+            "size": 300,
+            
+          }, {
+            "name": "7. FINE DANE",
+            "size": 300,
+			"children": [{
+                "name": "5",
+                "size": 300,
+				"children": [{
+                "name": "active tippers",
+                "size": 300
+              },]
+              },]
+            
+          }, {
+            "name": "8. SINGULAR SENSATION",
+            "size": 300,
+			"children": [{
+                "name": "4",
+                "size": 300,
+				"children": [{
+                "name": "speed",
+                "size": 300
+              },]
+              },]
+            
+          }, {
+            "name": "9. SONIC DEED",
+            "size": 300,
+            
+          }, {
+            "name": "10. FEARED EYES",
+            "size": 300,
+            
+          }, {
+            "name": "11. ANOTHER SHAMPZ",
+            "size": 300,
+            
+          },{
+            "name": "12. EXTREME PRIDE ",
+            "size": 300,
+            
+          }, ]
+      }, {
+        "name": "Race 2 1700m",
+        "size": 1700,
+        "children": [{
+            "name": "1 Mrs Gardenia  (NZ)",
+            "size": 300,     
+			"children": [{
+                "name": "4",
+                "size": 300,
+				"children": [{
+                "name": "wins",
+                "size": 300
+              },]
+              },]
+
+          },{
+            "name": "2 Samovare",
+            "size": 300,
+            
+          }, {
+            "name": "4 Lady Silhouette",
+            "size": 300,
+			"children": [{
+                "name": "5",
+                "size": 300,
+				"children": [{
+                "name": "active tippers",
+                "size": 300
+              },]
+              },]
+            
+          }, {
+            "name": "5 Mamzelle Tess",
+            "size": 300,
+			"children": [{
+                "name": "3",
+                "size": 300
+              },]
+            
+          }, {
+            "name": "6 Araaja  (IRE)",
+            "size": 300,
+            
+          }, {
+            "name": "7 Hectopascal  (NZ)",
+            "size": 300,
+            
+          }, {
+            "name": "8 Miss Siska",
+            "size": 300,
+			"children": [{
+                "name": "2",
+                "size": 200
+              },]
+            
+          }, {
+            "name": "9 La Fleurette",
+            "size": 300,
+            
+          }, {
+            "name": "10 Shokora",
+            "size": 300,
+            
+          },{
+            "name": "11 Seductive Miss",
+            "size": 300,
+            
+          }, {
+            "name": "12 One More Try",
+            "size": 300,
+			"children": [{
+                "name": "1",
+                "size": 300
+              },]
+            
+          }, {
+            "name": "13 Aeecee Tong De",
+            "size": 300,
+            
+          }, {
+            "name": "14 Tranquil Miss",
+            "size": 300,
+            
+          }, {
+            "name": "15 Palazzo Vecchio",
+            "size": 300,
+            
+          },{
+            "name": "17e Journeygirl",
+            "size": 300,
+            
+          }, {
+            "name": "18e Parallel World  (NZ)",
+            "size": 300,
+            
+          }, ]
+      }, {
+        "name": "Race 3 1400m",
+        "size": 1400,
+        "children": [{
+            "name": "1 Man From Uncle",
+            "size": 300,
+            "children": [{
+                "name": "5",
+                "size": 300,
+				"children": [{
+                "name": "active tippers",
+                "size": 300
+              },]
+              },]
+
+          },{
+            "name": "2 MANUEL",
+            "size": 300,
+            
+          }, {
+            "name": "4 SUNCRAZE",
+            "size": 300,
+			"children": [{
+                "name": "2",
+                "size": 200,				
+              },]
+            
+          }, {
+            "name": "5 CRAFTY COP",
+            "size": 300,
+            
+          }, {
+            "name": "6 PRINCESS OF QUEENS",
+            "size": 300,
+            
+          }, {
+            "name": "7 FOX HALL",
+            "size": 300,
+            
+          }, {
+            "name": "8 MASCULINO",
+            "size": 300,
+            
+          }, {
+            "name": "9 ECLAIR CALLING",
+            "size": 300,
+            
+          }, {
+            "name": "10 FIFTY STARS",
+            "size": 300,
+			"children": [{
+                "name": "3",
+                "size": 100,
+				
+              },]
+            
+          },{
+            "name": "11 FIFTY STARS",
+            "size": 300,
+            
+          }, {
+            "name": "12  BEAU GESTE",
+            "size": 300,
+            
+          }, {
+            "name": "13 HAUNTED",
+            "size": 300,
+			"children": [{
+                "name": "4",
+                "size": 300,
+				"children": [{
+                "name": "speed",
+                "size": 300
+              },]
+              },]
+            
+          }, {
+            "name": "14. MANDELA EFFECT",
+            "size": 300,
+			"children": [{
+                "name": "1",
+                "size": 300,
+				
+              },]
+            
+          }, {
+            "name": "15. QIJI PHOENIX",
+            "size": 300,
+            
+          }, {
+            "name": "16. KENTUCKY BREEZE",
+            "size": 300,
+            
+          },{
+            "name": "17. BRAVO TANGO",
+            "size": 300,
+            
+          }, {
+            "name": "18. GOING GAGA",
+            "size": 300,
+            
+          }, ]
+      }, {
+        "name": "Race 4 2800m",
+        "size": 2800,
+        "children": [{
+            "name": "1. SIN TO WIN",
+            "size": 300,
+
+          },{
+            "name": "2. BERISHA",
+            "size": 300,
+            
+          }, {
+            "name": "3 DOUKHAN",
+            "size": 300,
+            
+          }, {
+            "name": "4  ETAH JAMES",
+            "size": 300,
+			"children": [{
+                "name": "5",
+                "size": 300,
+				"children": [{
+                "name": "wins",
+                "size": 300
+              },]
+              },]
+            
+          }, {
+            "name": "5  CHEQUERED FLAG",
+            "size": 300,
+            
+          }, {
+            "name": "6 REZEALIENT",
+            "size": 300,
+            
+          }, {
+            "name": "7 SHERLOCK HOLMES",
+            "size": 300,
+			"children": [{
+                "name": "4",
+                "size": 300,
+				"children": [{
+                "name": "distance",
+                "size": 300
+              },]
+              },]
+            
+          }, {
+            "name": "8 KELLSTORM",
+            "size": 300,
+            
+          }, {
+            "name": "10 SHRAAOH",
+            "size": 100,
+			"children": [{
+                "name": "3",
+                "size": 300,
+				
+              },]
+            
+          }, {
+            "name": "11 AZURO",
+            "size": 200,
+			"children": [{
+                "name": "2",
+                "size": 200,
+				
+              },]
+            
+          },{
+            "name": "12. STEEL PRINCE",
+            "size": 300,
+			"children": [{
+                "name": "1",
+                "size": 300,
+				
+              },]
+            
+          }, {
+            "name": "13. DARABAD",
+            "size": 300,
+            
+          }, {
+            "name": "14. SASKO",
+            "size": 300,
+            
+          },{
+            "name": "16. ILWENDO",
+            "size": 300,
+            
+          }, {
+            "name": "17. PRINCE ALBY",
+            "size": 300,
+            
+          }, ]
+      }, ]
+    }
+
+  }
+</script>
